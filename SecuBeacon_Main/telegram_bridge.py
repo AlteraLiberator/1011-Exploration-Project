@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 # --- Telegram Bot Configuration ---
-TELEGRAM_BOT_TOKEN = "9055971956:AAHotvLJ4FBp0VcauYiKxey9KZEVKbtSKfY"
+TELEGRAM_BOT_TOKEN = "9055971956:AAHotvLJ4FbP0VcauYiKxey9KZEvKbtSKfY"
 TELEGRAM_CHAT_ID   = "824143605"
 
 @app.route('/alert', methods=['POST'])

@@ -14,8 +14,11 @@
 
 #define SECUBEACON_ENABLE_BUZZER 1
 #define BUZZER_PIN A1
-#define BUZZER_FREQUENCY 2700
 
+// FAST POLICE SIREN
+#define SIREN_LOW_FREQ 1000
+#define SIREN_HIGH_FREQ 2000
+#define SIREN_INTERVAL 150
 // ========================================
 // OBJECTS
 // ========================================
@@ -36,32 +39,62 @@ bool buzzerActive = false;
 unsigned long lastDebug = 0;
 
 // ========================================
-// BUZZER CONTROL
+// FAST POLICE SIREN CONTROL
 // ========================================
 
 void updateBuzzer(SystemState state) {
 
 #if SECUBEACON_ENABLE_BUZZER
 
+  static unsigned long lastSwitch = 0;
+  static bool highPitch = false;
+
   bool shouldBuzz =
     (state == STATE_BREACH ||
      state == STATE_PASSCODE_ENTRY);
 
-  if (shouldBuzz && !buzzerActive) {
+  unsigned long now = millis();
 
-    tone(BUZZER_PIN, BUZZER_FREQUENCY);
-    buzzerActive = true;
+  // Stop siren when alarm is inactive
+  if (!shouldBuzz) {
 
-    SerialUSB.println("BUZZER ON");
+    if (buzzerActive) {
+
+      noTone(BUZZER_PIN);
+      digitalWrite(BUZZER_PIN, LOW);
+
+      buzzerActive = false;
+      highPitch = false;
+
+      SerialUSB.println("POLICE SIREN OFF");
+    }
+
+    return;
   }
-  else if (!shouldBuzz && buzzerActive) {
 
-    noTone(BUZZER_PIN);
-    digitalWrite(BUZZER_PIN, LOW);
+  // Start siren at low frequency
+  if (!buzzerActive) {
 
-    buzzerActive = false;
+    buzzerActive = true;
+    highPitch = false;
+    lastSwitch = now;
 
-    SerialUSB.println("BUZZER OFF");
+    tone(BUZZER_PIN, SIREN_LOW_FREQ);
+
+    SerialUSB.println("POLICE SIREN ON");
+    return;
+  }
+
+  // Alternate high and low frequencies
+  if (now - lastSwitch >= SIREN_INTERVAL) {
+
+    lastSwitch = now;
+    highPitch = !highPitch;
+
+    tone(
+      BUZZER_PIN,
+      highPitch ? SIREN_HIGH_FREQ : SIREN_LOW_FREQ
+    );
   }
 
 #endif
@@ -126,7 +159,6 @@ void setup() {
   SerialUSB.println("STEP 12: Splash screen complete");
 
   // Initialize WiFi
-  // Uses the temporary non-blocking diagnostic version
   SerialUSB.println("STEP 13: Starting WiFi");
   wifi.begin();
   SerialUSB.println("STEP 14: WiFi initialized");
@@ -147,7 +179,6 @@ void loop() {
   const bool motion = tamper.checkTampering();
 
   // Maintain WiFi
-  // Currently disabled inside WiFi_Transceiver.cpp
   wifi.maintainConnection();
 
   // Update security engine
@@ -191,13 +222,23 @@ void loop() {
   }
 
   // ======================================
-  // BUZZER CONTROL
+  // UPDATE CYBERLOCK DISPLAY
+  // ======================================
+
+  display.renderState(
+    state,
+    engine.getEnteredPinLength(),
+    wifi.isConnected()
+  );
+
+  // ======================================
+  // FAST POLICE SIREN
   // ======================================
 
   updateBuzzer(state);
 
   // ======================================
-  // WIFI ALERT
+  // WIFI / TELEGRAM ALERT
   // ======================================
 
   if (
@@ -223,16 +264,6 @@ void loop() {
       SerialUSB.println("Alert request failed");
     }
   }
-
-  // ======================================
-  // UPDATE DISPLAY
-  // ======================================
-
-  display.renderState(
-    state,
-    engine.getEnteredPinLength(),
-    wifi.isConnected()
-  );
 
   delay(50);
 }
