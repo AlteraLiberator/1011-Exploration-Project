@@ -16,9 +16,10 @@
 #define BUZZER_PIN A1
 
 // FAST POLICE SIREN
-#define SIREN_LOW_FREQ 1000
-#define SIREN_HIGH_FREQ 2000
-#define SIREN_INTERVAL 150
+#define SIREN_LOW_FREQ 800
+#define SIREN_HIGH_FREQ 1600
+#define SIREN_INTERVAL 180
+
 // ========================================
 // OBJECTS
 // ========================================
