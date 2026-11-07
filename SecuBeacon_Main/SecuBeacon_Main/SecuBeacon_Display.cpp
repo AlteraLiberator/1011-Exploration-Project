@@ -1,5 +1,6 @@
 
 #include "SecuBeacon_Display.h"
+#include "bitmaps.h"
 #include <TinyScreen.h>
 
 // ========================================
@@ -40,20 +41,11 @@ uint8_t SecuBeaconDisplay::readButtons() {
 // ========================================
 
 void SecuBeaconDisplay::showSplashScreen() {
-
-  display.clearScreen();
-
-  display.drawLine(0, 0, 95, 0, CYBER_BLUE);
-  display.drawLine(0, 63, 95, 63, CYBER_BLUE);
-
-  display.setFont(liberationSans_10ptFontInfo);
-  display.fontColor(CYBER_BLUE, CYBER_BLACK);
-  display.setCursor(10, 18);
-  display.print("SecuBeacon");
+  displayBitmap(secuBeaconSplashScreen, 0, 96, 0, 64);
 
   display.setFont(liberationSans_8ptFontInfo);
   display.fontColor(CYBER_BLUE, CYBER_BLACK);
-  display.setCursor(19, 39);
+  display.setCursor(5, 63 - display.getFontHeight());
   display.print("CYBERLOCK 2.3");
 }
 
@@ -94,24 +86,8 @@ void SecuBeaconDisplay::renderState(
   // HEADER
   // ======================================
 
-  display.setFont(liberationSans_8ptFontInfo);
-
-  display.fontColor(CYBER_BLUE, CYBER_BLACK);
-  display.setCursor(2, 1);
-  display.print("SECU");
-
-  display.fontColor(CYBER_BLUE, CYBER_BLACK);
-  display.print("BEACON");
-
-  display.fontColor(
-    wifiConnected ? CYBER_BLUE : CYBER_RED,
-    CYBER_BLACK
-  );
-
-  display.setCursor(72, 1);
-  display.print(wifiConnected ? "ON" : "OFF");
-
-  display.drawLine(0, 12, 95, 12, CYBER_BLUE);
+  displayBitmap(headerBase, 0, 96, 0, 10);
+  displayBitmap(wifiConnected ? wifi_Connected : wifi_Disconnected, 81, 11, 1, 8);
 
   // ======================================
   // STATE SCREENS
@@ -124,20 +100,12 @@ void SecuBeaconDisplay::renderState(
     // ====================================
 
     case STATE_DISARMED: {
-
-      display.drawRect(
-        3, 17, 90, 43, 0, CYBER_BLUE
-      );
+      displayBitmap(disarmedIconLarge, (96 - 21) / 2 - 1, 21, 15, 27);
 
       display.setFont(liberationSans_10ptFontInfo);
-      display.fontColor(CYBER_BLUE, CYBER_BLACK);
-      display.setCursor(12, 24);
+      display.fontColor(0xFF, 0x00);
+      display.setCursor((96 - display.getPrintWidth("DISARMED")) / 2 - 1, 50);
       display.print("DISARMED");
-
-      display.setFont(liberationSans_8ptFontInfo);
-      display.fontColor(CYBER_WHITE, CYBER_BLACK);
-      display.setCursor(16, 44);
-      display.print("B1 TO ARM");
 
       break;
     }
@@ -148,20 +116,28 @@ void SecuBeaconDisplay::renderState(
 
     case STATE_ARMING: {
 
+      displayBitmap(disarmedIcon, 5, 7, 15, 9);
+
+      display.setFont(liberationSans_8ptFontInfo);
+      display.fontColor(0xFF, 0x00);
+      display.setCursor(13, 15);
+      display.print("Disarmed");
+
       display.setFont(liberationSans_10ptFontInfo);
-      display.fontColor(CYBER_BLUE, CYBER_BLACK);
-      display.setCursor(15, 23);
+      display.fontColor(0xFF, 0x00);
+      display.setCursor((96 - display.getPrintWidth("Arming...")) / 2 - 1, 30);
       display.print("ARMING...");
 
       // Blue loading bar
-      display.drawRect(
-        13, 44, 70, 7, 0, CYBER_BLUE
-      );
-
-      display.drawRect(
-        16, 46, 38, 3, 1, CYBER_BLUE
-      );
-
+      display.drawRect(13, 44, 70, 7, 0, CYBER_BLUE);
+      display.drawRect(15, 46, 11, 3, 1, CYBER_BLUE);
+      delay(500);
+      display.drawRect(15, 46, 33, 3, 1, CYBER_BLUE);
+      delay(800);
+      display.drawRect(15, 46, 55, 3, 1, CYBER_BLUE);
+      delay(1000);
+      display.drawRect(15, 46, 66, 3, 1, CYBER_BLUE);
+      delay(1000);
       break;
     }
 
@@ -171,77 +147,21 @@ void SecuBeaconDisplay::renderState(
 
     case STATE_ARMED: {
 
-      // Cyber HUD corners
-      display.drawLine(3, 17, 15, 17, CYBER_BLUE);
-      display.drawLine(3, 17, 3, 27, CYBER_BLUE);
-
-      display.drawLine(80, 17, 92, 17, CYBER_BLUE);
-      display.drawLine(92, 17, 92, 27, CYBER_BLUE);
-
-      display.drawLine(3, 44, 3, 52, CYBER_BLUE);
-      display.drawLine(3, 52, 15, 52, CYBER_BLUE);
-
-      display.drawLine(92, 44, 92, 52, CYBER_BLUE);
-      display.drawLine(80, 52, 92, 52, CYBER_BLUE);
-
-      // Decorative lines
-      display.drawLine(19, 30, 27, 30, CYBER_DIM);
-      display.drawLine(19, 34, 25, 34, CYBER_BLUE);
-
-      display.drawLine(69, 30, 77, 30, CYBER_DIM);
-      display.drawLine(71, 34, 77, 34, CYBER_BLUE);
-
-      // Lock shackle
-      display.drawLine(36, 36, 36, 28, CYBER_BLUE);
-      display.drawLine(36, 28, 41, 23, CYBER_BLUE);
-      display.drawLine(41, 23, 54, 23, CYBER_BLUE);
-      display.drawLine(54, 23, 59, 28, CYBER_BLUE);
-      display.drawLine(59, 28, 59, 36, CYBER_BLUE);
-
-      // Inner shackle
-      display.drawLine(40, 36, 40, 29, CYBER_CYAN);
-      display.drawLine(40, 29, 43, 27, CYBER_CYAN);
-      display.drawLine(43, 27, 52, 27, CYBER_CYAN);
-      display.drawLine(52, 27, 55, 29, CYBER_CYAN);
-      display.drawLine(55, 29, 55, 36, CYBER_CYAN);
-
-      // Lock body
-      display.drawRect(
-        31, 35, 33, 18, 1, CYBER_DIM
-      );
-
-      display.drawRect(
-        33, 36, 29, 16, 0, CYBER_BLUE
-      );
-
-      display.drawRect(
-        35, 38, 25, 12, 0, CYBER_CYAN
-      );
-
-      // Keyhole
-      display.drawRect(
-        46, 40, 4, 4, 1, CYBER_WHITE
-      );
-
-      display.drawLine(
-        48, 44, 48, 47, CYBER_WHITE
-      );
-
-      // Status footer
-      display.drawLine(
-        0, 54, 95, 54, CYBER_BLUE
-      );
+      displayBitmap(armedIcon, 5, 7, 15, 9);
 
       display.setFont(liberationSans_8ptFontInfo);
+      display.fontColor(0xFF, 0x00);
+      display.setCursor(13, 15);
+      display.print("Armed");
+      
+      display.fontColor(0x03, 0x00);
+      display.print(" (Active)");
 
-      display.fontColor(CYBER_BLUE, CYBER_BLACK);
-      display.setCursor(2, 55);
-      display.print("ARMED");
-
-      display.fontColor(CYBER_BLUE, CYBER_BLACK);
-      display.setCursor(53, 55);
-      display.print("ACTIVE");
-
+      display.fontColor(0xFF, 0x00);
+      display.setCursor(5, 15 + 5 + display.getFontHeight());
+      display.print("Motion Detection");
+      display.setCursor(5, 15 + 5 + 2*display.getFontHeight());
+      display.print("Enabled");
       break;
     }
 
@@ -257,16 +177,16 @@ void SecuBeaconDisplay::renderState(
 
       display.setFont(liberationSans_10ptFontInfo);
       display.fontColor(CYBER_RED, CYBER_BLACK);
-      display.setCursor(8, 20);
+      display.setCursor((96 - display.getPrintWidth("! BREACH !")) / 2 - 1, 20);
       display.print("! BREACH !");
 
       display.setFont(liberationSans_8ptFontInfo);
       display.fontColor(CYBER_WHITE, CYBER_BLACK);
-      display.setCursor(14, 39);
+      display.setCursor((96 - display.getPrintWidth("MOTION ALERT")) / 2 - 1, 39);
       display.print("MOTION ALERT");
 
       display.fontColor(CYBER_BLUE, CYBER_BLACK);
-      display.setCursor(16, 51);
+      display.setCursor((96 - display.getPrintWidth("ENTER PIN")) / 2 - 1, 54);
       display.print("ENTER PIN");
 
       break;
@@ -284,14 +204,14 @@ void SecuBeaconDisplay::renderState(
 
       display.setFont(liberationSans_8ptFontInfo);
       display.fontColor(CYBER_BLUE, CYBER_BLACK);
-      display.setCursor(15, 21);
+      display.setCursor((96 - display.getPrintWidth("SECURITY PIN")) / 2 - 1, 21);
       display.print("SECURITY PIN");
 
       display.setFont(liberationSans_10ptFontInfo);
       display.fontColor(CYBER_WHITE, CYBER_BLACK);
-      display.setCursor(19, 40);
-
+      
       for (uint8_t i = 0; i < 4; i++) {
+        display.setCursor((96 - 44) / 2 - 1 + i*11, 40);
         if (i < pinLength) {
           display.print("* ");
         } else {
@@ -305,4 +225,14 @@ void SecuBeaconDisplay::renderState(
     default:
       break;
   }
+}
+
+// Call this method using the available bitmap arrays I created inside bitmap.cpp. You can add your own custom
+void SecuBeaconDisplay::displayBitmap(const uint8_t* bitmap, int x, int xLength, int y, int yLength) {
+  // Update Screen
+  display.setX(x, x + xLength - 1);
+  display.setY(y, y + yLength - 1);
+  display.startData();
+  display.writeBuffer((uint8_t*)bitmap, xLength * yLength);
+  display.endTransfer();
 }
