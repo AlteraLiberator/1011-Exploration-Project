@@ -16,6 +16,7 @@ public:
   void renderState(SystemState state,
                    uint8_t pinLength,
                    bool wifiConnected);
+  void displayBitmap(const uint8_t* bitmap, int x, int xLength, int y, int yLength);
 };
 
 #endif
